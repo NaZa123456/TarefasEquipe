@@ -177,39 +177,62 @@ Services started:
 #### Prerequisites
 
 - Node.js 20+
-- PostgreSQL 16 running locally
+- Docker (for PostgreSQL — skip if you have PostgreSQL installed natively)
 - npm
 
 #### Setup
 
+**1. Start PostgreSQL (via Docker — recommended)**
+
 ```bash
-# 1. Backend
+docker run -d --name taskflow-db \
+  -e POSTGRES_USER=taskflow \
+  -e POSTGRES_PASSWORD=taskflow123 \
+  -e POSTGRES_DB=taskflow \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+> Skip this step if you have PostgreSQL installed natively.
+
+**2. Backend**
+
+```bash
 cd backend
 npm install
 cp .env.example .env
 
-# 2. Configure .env for local PostgreSQL
-# Edit backend/.env:
-# DATABASE_URL="postgresql://postgres:yourpassword@localhost:5432/taskflow?schema=public"
+# Edit backend/.env — set DATABASE_URL to your local PostgreSQL:
+#   Docker:  postgresql://taskflow:taskflow123@localhost:5432/taskflow?schema=public
+#   Native:  postgresql://postgres:yourpassword@localhost:5432/taskflow?schema=public
 
-# 3. Create the database
-psql -U postgres -c "CREATE DATABASE taskflow;"
-
-# 4. Push schema and seed data
+# Generate Prisma client and create tables
 npx prisma generate
 npx prisma db push
+
+# Seed with demo data (admin@taskflow.com / admin123)
 node prisma/seed.js
 
-# 5. Start backend (terminal 1)
+# Start backend on http://localhost:4000
 npm run dev
+```
 
-# 6. Frontend (terminal 2)
+**3. Frontend**
+
+```bash
 cd frontend
 npm install
 npm run dev
 ```
 
 Open **http://localhost:5173**
+
+#### Default credentials (after seeding)
+
+```
+Email:    admin@taskflow.com
+Password: admin123
+```
 
 ### Option 3: Deploy to Render (Production)
 
